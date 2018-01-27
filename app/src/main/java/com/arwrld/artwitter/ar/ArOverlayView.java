@@ -12,9 +12,7 @@ import android.view.View;
 
 import com.arwrld.artwitter.MainActivity;
 import com.arwrld.artwitter.location.LocationHelper;
-import com.arwrld.artwitter.models.Geo;
 import com.arwrld.artwitter.models.Status;
-import com.arwrld.artwitter.utils.MapCircleTransform;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,11 +31,11 @@ public class ArOverlayView extends View {
     private float[][] pointsXY;
     private Paint paint;
     final int radius = 30;
-    private MainActivity attractionsArFragment;
+    private MainActivity mainActivity;
 
-    public ArOverlayView(Context context, MainActivity attractionsArFragment) {
+    public ArOverlayView(Context context, MainActivity mainActivity) {
         super(context);
-        this.attractionsArFragment = attractionsArFragment;
+        this.mainActivity = mainActivity;
 
         this.context = context;
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -95,7 +93,7 @@ public class ArOverlayView extends View {
                 float yPoint = pointsXY[i][1];
                 if (x > xPoint - 100 && x < xPoint + 100) {
                     if (y > yPoint - 100 && y < yPoint + 100) {
-                        attractionsArFragment.processTouchEvent(
+                        mainActivity.processTouchEvent(
                                 arPoints.get(i).getStatus().getSource());
                         break;
                     }
@@ -119,8 +117,6 @@ public class ArOverlayView extends View {
         float[] cameraCoordinateVector = new float[4];
         Matrix.multiplyMV(cameraCoordinateVector, 0, rotatedProjectionMatrix, 0, pointInENU, 0);
 
-        // cameraCoordinateVector[2] is z, that always less than 0 to display on right position
-        // if z > 0, the point will display on the opposite
         if (cameraCoordinateVector[2] < 0) {
             final float x = (0.5f + cameraCoordinateVector[0] / cameraCoordinateVector[3]) * canvas.getWidth();
             final float y = (0.5f - cameraCoordinateVector[1] / cameraCoordinateVector[3]) * canvas.getHeight();
