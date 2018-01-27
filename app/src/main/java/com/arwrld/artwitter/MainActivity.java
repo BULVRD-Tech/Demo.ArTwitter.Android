@@ -2,6 +2,7 @@ package com.arwrld.artwitter;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera;
@@ -10,6 +11,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.net.Uri;
 import android.opengl.Matrix;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -51,7 +53,6 @@ import permissions.dispatcher.RuntimePermissions;
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     CameraView cameraView;
-    private SurfaceView surfaceView;
     private FrameLayout cameraContainerLayout;
 
     private Context mContext;
@@ -79,7 +80,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         cameraView = findViewById(R.id.camera);
-        surfaceView = findViewById(R.id.surface_view);
         cameraContainerLayout = findViewById(R.id.camera_container_layout);
         mContext = this;
 
@@ -172,8 +172,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                                 }
                                             });
                                 } else {
-                                    int marker = R.mipmap.ic_launcher_round;
-                                    arPoints.add(new ArPoint(status, BitmapFactory.decodeResource(getResources(), marker)));
+                                    int marker = R.mipmap.ic_arwrld;
+                                    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), marker);
+                                    bitmap = Bitmap.createScaledBitmap(bitmap, Utils.getSizeFromDistance(mContext, size),
+                                            Utils.getSizeFromDistance(mContext, size), false);
+                                    arPoints.add(new ArPoint(status, bitmap));
                                     arOverlayView.setDataPoints(arPoints);
                                 }
                             }
@@ -188,26 +191,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             ((ViewGroup) arOverlayView.getParent()).removeView(arOverlayView);
         }
         cameraContainerLayout.addView(arOverlayView);
-    }
-
-    private void initCamera() {
-        int numCams = Camera.getNumberOfCameras();
-        if (numCams > 0) {
-            try {
-                camera = Camera.open();
-                camera.startPreview();
-            } catch (RuntimeException ex) {
-                Toast.makeText(mContext, "Camera not found", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    private void reloadSurfaceView() {
-        if (surfaceView.getParent() != null) {
-            ((ViewGroup) surfaceView.getParent()).removeView(surfaceView);
-        }
-
-        cameraContainerLayout.addView(surfaceView);
     }
 
     private void releaseCamera() {
@@ -254,12 +237,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Matrix.frustumM(projectionMatrix, OFFSET, LEFT, RIGHT, BOTTOM, TOP, Z_NEAR, Z_FAR);
     }
 
-    public float[] getProjectionMatrix() {
-        return projectionMatrix;
-    }
-
-    public void processTouchEvent(final String objectId) {
-
+    public void processTouchEvent(final String url) {
+        Intent i = new Intent(Intent.ACTION_VIEW);
+        i.setData(Uri.parse(url));
+        mContext.startActivity(i);
     }
 
     @Override
